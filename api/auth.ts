@@ -1,6 +1,6 @@
 //import { IUserLogin, IUserRegister } from '../models/userModels';
 //import agent from '../services/agent';
-import { IUserLogin } from '../models/user';
+import { IMerchantRegister, IUserLogin } from '../models/user';
 import agentNoInterceptor from '../services/agentNoInterceptor';
 
 const Auth = {
@@ -11,6 +11,11 @@ const Auth = {
   //   agentNoInterceptor().post('auth/register', user),
   loginUser: (login: IUserLogin) =>
     agentNoInterceptor().post('loginuser.php/loginuser/login', login),
+  merchantRegister: (user: IMerchantRegister) =>
+    agentNoInterceptor().post(
+      'courier.php/merchantRegistration/merchantReg',
+      user
+    ),
   //loginSingleUser: () => agent().get(auth/currentuser),
 };
 

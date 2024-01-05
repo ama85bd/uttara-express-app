@@ -16,13 +16,21 @@ import OutlineButton from '../components/UI/OutlineButton';
 import { useForm, Controller } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { IMerchantRegister } from '../models/user';
+import { useAppDispatch } from '../store/store';
+import showToast from '../utils/Toast';
+import { useNavigation } from '@react-navigation/native';
+import { merchantRegisterAsync } from '../slices/register/merchantRegisterSlice';
 
 const RegisterScreen: React.FunctionComponent = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<any>({ mode: 'onChange' });
+  const navigation: any = useNavigation();
+  const dispatch = useAppDispatch();
 
   const [registerFor, setRegisterFor] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -33,6 +41,7 @@ const RegisterScreen: React.FunctionComponent = () => {
 
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedContactNumber, setIsFocusedContactNumber] = useState(false);
+  const [isFocusedLoginName, setIsFocusedLoginName] = useState(false);
 
   const [isFocusedFullName, setIsFocusedFullName] = useState(false);
   const [isFocusedDesignation, setIsFocusedDesignation] = useState(false);
@@ -120,6 +129,15 @@ const RegisterScreen: React.FunctionComponent = () => {
     setIsFocusedContactNumber(false);
   };
 
+  //Login Name
+  const handleBlurLoginName = () => {
+    setIsFocusedLoginName(false);
+  };
+
+  const handleFocusLoginName = () => {
+    setIsFocusedLoginName(true);
+  };
+
   //Password
   const handleFocusPassword = () => {
     setIsFocusedPassword(true);
@@ -136,7 +154,30 @@ const RegisterScreen: React.FunctionComponent = () => {
     setIsFocusedCheckPassword(false);
   };
 
-  const onSubmit = () => {};
+  const onSubmit = (data: any) => {
+    console.log(data);
+    const Info: IMerchantRegister = {
+      name: data.name,
+      contactperson: data.contactPerson,
+      contact: data.contactNumber,
+      loginname: data.loginName,
+      facebookpagelink: data.pageLink,
+      district: data.district,
+      policestationthana: data.police,
+      address: data.address,
+      password: data.password,
+    };
+    console.log(Info);
+
+    dispatch(merchantRegisterAsync({ user: Info })).then((e) => {
+      if (e.payload) {
+        console.log(e.payload);
+        showToast('success', 'Register Success!');
+        reset();
+        navigation.navigate('Login');
+      }
+    });
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -159,6 +200,57 @@ const RegisterScreen: React.FunctionComponent = () => {
 
           <Controller
             control={control}
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  isFocusedFullName && styles.focusedTextInput,
+                ]}
+                placeholder='*Merchand or Company Name'
+                onBlur={() => {
+                  onBlur();
+                  handleBlurFullName();
+                }}
+                onChangeText={onChange}
+                value={value}
+                onFocus={handleFocusFullName}
+                textAlign='left'
+                inputMode='text'
+              />
+            )}
+            name='name'
+          />
+          {errors.name && (
+            <Text style={{ color: 'red' }}>*Merchand or Company Name.</Text>
+          )}
+
+          <Controller
+            control={control}
+            rules={{ required: false }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  isFocusedFullName && styles.focusedTextInput,
+                ]}
+                placeholder='Contact Person'
+                onBlur={() => {
+                  onBlur();
+                  handleBlurFullName();
+                }}
+                onChangeText={onChange}
+                value={value}
+                onFocus={handleFocusFullName}
+                textAlign='left'
+                inputMode='text'
+              />
+            )}
+            name='contactPerson'
+          />
+
+          <Controller
+            control={control}
             rules={{
               required: true,
               pattern: {
@@ -175,7 +267,7 @@ const RegisterScreen: React.FunctionComponent = () => {
                   styles.input,
                   isFocusedContactNumber && styles.focusedTextInput,
                 ]}
-                placeholder='*Phonr no. for login'
+                placeholder='*Contact No.'
                 onBlur={() => {
                   onBlur();
                   handleBlurContactNumber();
@@ -183,7 +275,7 @@ const RegisterScreen: React.FunctionComponent = () => {
                 onChangeText={onChange}
                 value={value}
                 onFocus={handleFocusContactNumber}
-                textAlign='center'
+                textAlign='left'
                 inputMode='decimal'
               />
             )}
@@ -200,10 +292,43 @@ const RegisterScreen: React.FunctionComponent = () => {
             rules={{
               required: true,
               pattern: {
-                value:
-                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*_])(?=.{6,12}$)/,
-                message: 'Please enter a valid password',
+                value: /^([+]\d{2})?\d{11}$/,
+
+                // /^[+-]?\d{1,18}(\.\d{1,2})?$/,
+                // /^(?:0\.(?:0[0-9]|[0-9]\d?)|[0-9]\d*(?:\.\d{1,2})?)(?:e[+-]?\d+)?$/,
+                message: 'Please enter a valid contact number',
               },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[
+                  styles.input,
+                  isFocusedLoginName && styles.focusedTextInput,
+                ]}
+                placeholder='*Phone no. as a login name'
+                onBlur={() => {
+                  onBlur();
+                  handleBlurLoginName();
+                }}
+                onChangeText={onChange}
+                value={value}
+                onFocus={handleFocusLoginName}
+                textAlign='left'
+                inputMode='decimal'
+              />
+            )}
+            name='loginName'
+          />
+          {errors.loginName && (
+            <Text style={{ color: 'red' }}>
+              *Please enter a valid contact number
+            </Text>
+          )}
+
+          <Controller
+            control={control}
+            rules={{
+              required: true,
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <View style={{ width: '90%' }}>
@@ -212,7 +337,7 @@ const RegisterScreen: React.FunctionComponent = () => {
                     styles.inputPassword,
                     isFocusedPassword && styles.focusedTextInput,
                   ]}
-                  placeholder=' *Enter a Password'
+                  placeholder=' *Password'
                   autoCorrect={false}
                   secureTextEntry={!showPassword} // Toggle secure text entry based on the state
                   value={value}
@@ -226,7 +351,7 @@ const RegisterScreen: React.FunctionComponent = () => {
                   }}
                   onFocus={handleFocusPassword}
                   textContentType='password'
-                  textAlign='center'
+                  textAlign='left'
                 />
 
                 <TouchableOpacity
@@ -255,36 +380,7 @@ const RegisterScreen: React.FunctionComponent = () => {
 
           <Controller
             control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[
-                  styles.input,
-                  isFocusedFullName && styles.focusedTextInput,
-                ]}
-                placeholder='*Business / Page Name'
-                onBlur={() => {
-                  onBlur();
-                  handleBlurFullName();
-                }}
-                onChangeText={onChange}
-                value={value}
-                onFocus={handleFocusFullName}
-                textAlign='center'
-                inputMode='text'
-              />
-            )}
-            name='fullName'
-          />
-          {errors.fullName && (
-            <Text style={{ color: 'red' }}>
-              *Business / Page name is required.
-            </Text>
-          )}
-
-          <Controller
-            control={control}
-            rules={{ required: true }}
+            rules={{ required: false }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[
@@ -299,86 +395,18 @@ const RegisterScreen: React.FunctionComponent = () => {
                 onChangeText={onChange}
                 value={value}
                 onFocus={handleFocusFullName}
-                textAlign='center'
+                textAlign='left'
                 inputMode='text'
               />
             )}
-            name='fullName'
+            name='pageLink'
           />
-          {errors.fullName && <Text style={{ color: 'red' }}> </Text>}
-
-          <Controller
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[
-                  styles.input,
-                  isFocusedFullName && styles.focusedTextInput,
-                ]}
-                placeholder='*Contact person name'
-                onBlur={() => {
-                  onBlur();
-                  handleBlurFullName();
-                }}
-                onChangeText={onChange}
-                value={value}
-                onFocus={handleFocusFullName}
-                textAlign='center'
-                inputMode='text'
-              />
-            )}
-            name='fullName'
-          />
-          {errors.fullName && (
-            <Text style={{ color: 'red' }}>
-              *Contact person name is required.
-            </Text>
-          )}
-
-          <Controller
-            control={control}
-            rules={{
-              required: true,
-              pattern: {
-                value: /^([+]\d{2})?\d{11}$/,
-
-                // /^[+-]?\d{1,18}(\.\d{1,2})?$/,
-                // /^(?:0\.(?:0[0-9]|[0-9]\d?)|[0-9]\d*(?:\.\d{1,2})?)(?:e[+-]?\d+)?$/,
-                message: 'Please enter a valid contact number',
-              },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[
-                  styles.input,
-                  isFocusedContactNumber && styles.focusedTextInput,
-                ]}
-                placeholder='*Contact number'
-                onBlur={() => {
-                  onBlur();
-                  handleBlurContactNumber();
-                }}
-                onChangeText={onChange}
-                value={value}
-                onFocus={handleFocusContactNumber}
-                textAlign='center'
-                inputMode='decimal'
-              />
-            )}
-            name='contactNumber'
-          />
-          {errors.contactNumber && (
-            <Text style={{ color: 'red' }}>
-              *Please enter a valid contact number
-            </Text>
-          )}
 
           <Controller
             name='district'
             defaultValue=''
             control={control}
-            rules={{ required: true }}
+            rules={{ required: false }}
             render={({ field: { onChange } }) => (
               <View style={styles.dropdownGender}>
                 <DropDownPicker
@@ -390,27 +418,24 @@ const RegisterScreen: React.FunctionComponent = () => {
                   setOpen={setDistrictOpen}
                   setValue={setDistrictValue}
                   setItems={setDistrict}
-                  placeholder='*Select District'
+                  placeholder='Select District'
                   placeholderStyle={styles.placeholderStyles}
                   onOpen={onDistrictOpen}
                   onChangeValue={onChange}
                   zIndex={3000}
                   zIndexInverse={1000}
-                  labelStyle={{ textAlign: 'center' }}
+                  labelStyle={{ textAlign: 'left' }}
                   listMode='MODAL'
                 />
               </View>
             )}
           />
-          {errors.gender && (
-            <Text style={{ color: 'red' }}>*District is required.</Text>
-          )}
 
           <Controller
             name='police'
             defaultValue=''
             control={control}
-            rules={{ required: true }}
+            rules={{ required: false }}
             render={({ field: { onChange } }) => (
               <View style={styles.dropdownGender}>
                 <DropDownPicker
@@ -422,32 +447,29 @@ const RegisterScreen: React.FunctionComponent = () => {
                   setOpen={setPoliceOpen}
                   setValue={setPoliceValue}
                   setItems={setPolice}
-                  placeholder='*Select Police Station'
+                  placeholder='Select Police Station'
                   placeholderStyle={styles.placeholderStyles}
                   onOpen={onPoliceOpen}
                   onChangeValue={onChange}
                   zIndex={3000}
                   zIndexInverse={1000}
-                  labelStyle={{ textAlign: 'center' }}
+                  labelStyle={{ textAlign: 'left' }}
                   listMode='MODAL'
                 />
               </View>
             )}
           />
-          {errors.gender && (
-            <Text style={{ color: 'red' }}>*Police station is required.</Text>
-          )}
 
           <Controller
             control={control}
-            rules={{ required: true }}
+            rules={{ required: false }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[
                   styles.input,
                   isFocusedFullName && styles.focusedTextInput,
                 ]}
-                placeholder='*Address'
+                placeholder='Address'
                 onBlur={() => {
                   onBlur();
                   handleBlurFullName();
@@ -455,15 +477,12 @@ const RegisterScreen: React.FunctionComponent = () => {
                 onChangeText={onChange}
                 value={value}
                 onFocus={handleFocusFullName}
-                textAlign='center'
+                textAlign='left'
                 inputMode='text'
               />
             )}
-            name='fullName'
+            name='address'
           />
-          {errors.fullName && (
-            <Text style={{ color: 'red' }}>*Address is required.</Text>
-          )}
 
           <View style={{ marginTop: 20 }}>
             <OutlineButton
@@ -556,9 +575,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 16,
     borderWidth: 1,
-    backgroundColor: '#E8F0FE',
+    backgroundColor: '#f1f2f4',
     borderRadius: 4,
     width: '90%',
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderColor: '#9f9e9e',
   },
   inputPassword: {
     marginVertical: 8,
@@ -566,9 +589,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 16,
     borderWidth: 1,
-    backgroundColor: '#E8F0FE',
+    backgroundColor: '#f1f2f4',
     borderRadius: 4,
     width: '100%',
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderColor: '#9f9e9e',
   },
   focusedTextInput: {
     borderColor: '#007aff', // Focused border color
@@ -594,22 +621,25 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   dropdown: {
-    borderColor: '#262525',
+    borderColor: '#9f9e9e',
     height: 50,
     textAlign: 'center',
     borderWidth: 1,
-    backgroundColor: '#E8F0FE',
+    backgroundColor: '#f1f2f4',
     borderRadius: 4,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
   },
   placeholderStyles: {
     color: '#605f5f',
-    textAlign: 'center',
+    textAlign: 'left',
     fontSize: 16,
   },
   icon: {
     marginLeft: 10,
     color: 'black',
-    marginTop: 2,
+    marginTop: -4,
     fontSize: 30,
   },
   buttonsContainer: {

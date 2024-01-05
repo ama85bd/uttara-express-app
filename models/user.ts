@@ -20,17 +20,13 @@ export interface ILoginCredential {
 }
 
 export interface IMerchantRegister {
-  USER_ID: string;
-  NAME: string;
-  USERNAME: string;
-  LEVEL: string;
-  PHONE: string;
-  EMAIL: string;
-  DEPARTMENT: number;
-  DESIGNATION: number;
-  OUTLET: number;
-  orgID: number;
-  HOME: number;
-  user_level: number;
-  employeeID: number;
+  name: string;
+  contactperson: string;
+  contact: string;
+  loginname: string;
+  facebookpagelink: string;
+  district: string;
+  policestationthana: string;
+  address: string;
+  password: string;
 }
